@@ -34,12 +34,17 @@
   ([x y z] (encode-xyz x y z))
   ([x p q z] (encode-xpqz x p q z)))
 
-
-
 (defn reg8 [reg]
   (.indexOf ['b 'c 'd 'e 'h 'l 'hl 'a'] reg))
 
+(defn is-reg8 [reg]
+  (not= (- 1) (reg8 reg)))
 
+(defn reg16-1 [reg]
+  (.indexOf ['bc 'de 'hl 'sp] reg))
+
+(defn is-reg16-1 [reg]
+  (not= (- 1) (reg16-1 reg)))
 
 ; single bit operation commands
 
@@ -57,6 +62,14 @@
   "Set a bit in a register"
   [bit reg]
   `(vec [0xcb (encode 3 ~bit (reg8 (quote ~reg)))]))
+
+; arithmetic / logical commands
+(defmacro incr
+  [reg]
+  `(vec [
+      (if (is-reg16-1 (quote ~reg))
+        (encode 0 (reg16-1 (quote ~reg)) 0 3)
+        (encode 0 (reg8 (quote ~reg)) 4))]))
 
 ; rotate and shift commands
 (def rlca [0x07])
