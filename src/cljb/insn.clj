@@ -34,13 +34,12 @@
   ([x y z] (encode-xyz x y z))
   ([x p q z] (encode-xpqz x p q z)))
 
-(defn jp
-  "Unconditional jump"
-  [arg]
-  [0xc3 (mask8 (bit-shift-right arg 8)) (mask8 arg)])
+
 
 (defn reg8 [reg]
   (.indexOf ['b 'c 'd 'e 'h 'l 'hl 'a'] reg))
+
+
 
 ; single bit operation commands
 
@@ -59,6 +58,52 @@
   [bit reg]
   `(vec [0xcb (encode 3 ~bit (reg8 (quote ~reg)))]))
 
+; rotate and shift commands
+(def rlca [0x07])
+(def rla [0x17])
+(def rrca [0x0f])
+(def rra [0x1f])
+
+(defmacro rlc
+  "8-bit rotation to the left"
+  [reg]
+  `(vec [0xcb (encode 0 0 (reg8 (quote ~reg)))]))
+
+(defmacro rrc
+  "8-bit rotation to the right"
+  [reg]
+  `(vec [0xcb (encode 0 1 (reg8 (quote ~reg)))]))
+
+(defmacro rl
+  "9-bit rotation to the left"
+  [reg]
+  `(vec [0xcb (encode 0 2 (reg8 (quote ~reg)))]))
+
+(defmacro rr
+  "9-bit rotation to the right"
+  [reg]
+  `(vec [0xcb (encode 0 3 (reg8 (quote ~reg)))]))
+
+(defmacro sla
+  "Arithmetic shift left"
+  [reg]
+  `(vec [0xcb (encode 0 4 (reg8 (quote ~reg)))]))
+
+(defmacro sra
+  "Arithmetic shift right"
+  [reg]
+  `(vec [0xcb (encode 0 5 (reg8 (quote ~reg)))]))
+
+(defmacro sll
+  "9-bit rotation to the right"
+  [reg]
+  `(vec [0xcb (encode 0 6 (reg8 (quote ~reg)))]))
+
+(defmacro srl
+  "Logical shift right"
+  [reg]
+  `(vec [0xcb (encode 0 7 (reg8 (quote ~reg)))]))
+
 ; cpu control commands
 
 (def ccf [0x3f])
@@ -70,8 +115,14 @@
 (def ei [0xfb])
 
 ; jump commands
+
 (defn cc8 [cc]
   (.indexOf ['nz 'z 'nc 'c 'po 'pe 'p 'm] cc))
+
+(defn jp
+  "Unconditional jump"
+  [arg]
+  [0xc3 (mask8 (bit-shift-right arg 8)) (mask8 arg)])
 
 (defmacro ret
   ([] `(vec [0xc9]))
